@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reframe</title>
+<meta name="description" content="An interactive reframing exercise: name a belief, surface what supports it, invert it, and arrive at a new belief." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #2b241c;
+    --muted: #7a6f60;
+    --border: #e5dccb;
+    --primary: #F07F6C;
+    --flip: #238CE7;
+    --shadow: 0 1px 2px rgba(40,30,20,.05), 0 12px 40px rgba(40,30,20,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(rgba(40,30,20,.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  h1, h2 { font-family: "Fraunces", Georgia, serif; letter-spacing: -.01em; margin: 0; font-weight: 500; }
+  button { font: inherit; cursor: pointer; }
+  textarea, input { font: inherit; color: inherit; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 24px 56px; min-height: 100vh; display: flex; flex-direction: column; }
+  header .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0; }
+
+  .intro { max-width: 720px; margin-top: 40px; }
+  .intro p { color: var(--muted); font-size: 18px; margin: 0; line-height: 1.5; }
+
+  .stage { margin-top: 40px; flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .stack { display: flex; flex-direction: column; align-items: center; gap: 28px; width: 100%; }
+  .row2 { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: center; }
+
+  /* CIRCLES — outline style, white inside, text vertically centered */
+  .circle {
+    width: min(300px, 78vw); aspect-ratio: 1; border-radius: 50%;
+    background: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px; box-shadow: var(--shadow);
+    border: 3px solid var(--border);
+  }
+  .circle.md { width: min(220px, 60vw); padding: 22px; }
+  .circle.primary { border-color: var(--primary); }
+  .circle.flip { border-color: var(--flip); }
+  .circle.primary.filled { background: var(--primary); border-color: var(--primary); }
+  .circle.flip.filled { background: var(--flip); border-color: var(--flip); }
+  .circle.filled textarea, .circle.filled p { color: #fff; }
+  .circle.filled textarea::placeholder { color: rgba(255,255,255,.7); }
+  .circle textarea, .circle p {
+    width: 100%; background: transparent; border: 0; outline: 0; resize: none;
+    text-align: center; color: var(--ink); line-height: 1.35; margin: 0;
+    display: block;
+    font-family: inherit;
+  }
+  .circle textarea { font-size: 18px; overflow: hidden; }
+  .circle.md textarea, .circle.md p { font-size: 15px; }
+  .circle textarea::placeholder { color: rgba(43,36,28,.35); }
+  .circle.selectable { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+  .circle.selectable:hover { transform: translateY(-2px); }
+  .circle.selectable.selected { background: var(--flip); }
+  .circle.selectable.selected p { color: #fff; }
+
+  .hint { color: var(--muted); font-size: 14px; margin: 0; text-align: center; }
+  .encourage { font-family: "Fraunces", Georgia, serif; font-size: 20px; color: var(--ink); margin: 0; text-align: center; }
+
+  .grid2x2 {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 24px 40px; align-items: center; justify-items: center;
+    position: relative;
+    max-width: 720px; width: 100%;
+  }
+
+  /* pick chips */
+  .pick { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 10px; }
+  .pick .chip {
+    border: 1px solid var(--border); background: #fff; border-radius: 16px;
+    padding: 14px 18px; font-size: 15px; text-align: left; color: var(--ink);
+    transition: all .15s ease; display: flex; align-items: center; gap: 12px;
+  }
+  .pick .chip .dot {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); flex: 0 0 20px;
+  }
+  .pick .chip.selected { border-color: var(--flip); background: #eef6fe; }
+  .pick .chip.selected .dot { background: var(--flip); border-color: var(--flip); }
+
+  footer {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  footer .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .btn {
+    border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 500;
+    border: 1px solid var(--border); background: #fff; color: var(--ink);
+    transition: opacity .15s, background .15s;
+  }
+  .btn:hover { background: #faf6ec; }
+  .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .btn.primary:hover { opacity: .9; background: var(--ink); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .before-after { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; }
+  .before-after .arrow { font-size: 28px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">A reframing exercise</p>
+  </header>
+
+  <section class="intro">
+    <p id="stepPrompt"></p>
+  </section>
+
+  <section class="stage" id="stage"></section>
+
+  <footer>
+    <button class="btn" id="backBtn">Back</button>
+    <div class="actions" id="actions"></div>
+  </footer>
+</div>
+
+<script>
+/* ================= state ================= */
+const state = {
+  phase: "core",        // core | support | supportsReview | opposite | oppositePick | newCore | final
+  core: "",
+  supports: [],         // finalized supporting beliefs (up to 4)
+  currentSupport: "",
+  sIdx: 0,              // which support we're working on in opposites phase
+  opposites: [[], [], [], []],   // per support: array of finalized opposite strings
+  chosenOpposite: [-1, -1, -1, -1], // chosen index per support
+  currentOpposite: "",
+  reframed: "",
+};
+const history = []; // stack of phase snapshots for Back
+
+/* ================= prompts ================= */
+function currentPrompt() {
+  switch (state.phase) {
+    case "core":
+      return "What belief about yourself or your situation may be holding you back?";
+    case "support":
+      if (state.supports.length === 0)
+        return "How do you know it's true? Name a reason that makes it feel true.";
+      return "Keep them coming — what's another reason?";
+    case "supportsReview":
+      return "Now you are going to find the opposite of each statement. First, try to write the opposite of your statement, even if it does not feel true. The more extreme — the better. Try to write as many opposites as come to your mind.";
+    case "opposite": {
+      const list = state.opposites[state.sIdx];
+      if (list.length === 0) return "Write the opposite of this statement. The more extreme, the better.";
+      return "Keep going — what's another opposite?";
+    }
+    case "oppositePick":
+      return "See what you got — choose the one that feels most right.";
+    case "newCore":
+      return "Write your reframed core belief.";
+    case "final":
+      return "This is your new core belief. How does it feel?";
+  }
+  return "";
+}
+
+/* ================= helpers ================= */
+const $ = (s) => document.querySelector(s);
+const stageEl = $("#stage");
+
+function autoGrow(t){
+  t.style.height = "auto";
+  t.style.height = t.scrollHeight + "px";
+}
+function circleInput({tone, value, onInput, size, autofocus, filled}) {
+  const c = document.createElement("div");
+  c.className = "circle " + tone + (size === "md" ? " md" : "") + (filled ? " filled" : "");
+  const t = document.createElement("textarea");
+  t.value = value; t.placeholder = "type"; t.rows = 1;
+  t.addEventListener("input", (e) => { onInput(e.target.value); autoGrow(t); updateActions(); });
+  c.appendChild(t);
+  setTimeout(() => { autoGrow(t); if (autofocus) t.focus(); }, 0);
+  return c;
+}
+function circleStatic({tone, text, size, filled}) {
+  const c = document.createElement("div");
+  c.className = "circle " + tone + (size === "md" ? " md" : "") + (filled ? " filled" : "");
+  const p = document.createElement("p"); p.textContent = text;
+  c.appendChild(p);
+  return c;
+}
+
+/* ================= render ================= */
+function render() {
+  $("#stepPrompt").textContent = currentPrompt();
+  stageEl.innerHTML = "";
+
+  if (state.phase === "core") {
+    const w = document.createElement("div"); w.className = "stack";
+    w.appendChild(circleInput({
+      tone: "primary", value: state.core,
+      onInput: v => state.core = v,
+      autofocus: true, filled: true,
+    }));
+    stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "support") {
+    const w = document.createElement("div"); w.className = "stack";
+    const row = document.createElement("div"); row.className = "row2";
+    row.appendChild(circleStatic({ tone: "primary", size: "md", text: state.core, filled: true }));
+    row.appendChild(circleInput({
+      tone: "primary", size: "md",
+      value: state.currentSupport,
+      onInput: v => state.currentSupport = v,
+      autofocus: true,
+    }));
+    w.appendChild(row);
+    if (state.supports.length >= 1) {
+      const enc = document.createElement("p");
+      enc.className = "encourage";
+      enc.textContent = "Keep them coming.";
+      w.appendChild(enc);
+    }
+    const hint = document.createElement("p");
+    hint.className = "hint";
+    hint.textContent = `${state.supports.length} of 4 so far`;
+    w.appendChild(hint);
+    stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "supportsReview") {
+    const w = document.createElement("div"); w.className = "stack";
+    const row = document.createElement("div"); row.className = "row2";
+    // core in the middle-ish, supports around — simple grid of 4
+    state.supports.forEach(s => row.appendChild(circleStatic({ tone: "primary", size: "md", text: s })));
+    w.appendChild(row);
+    stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "opposite") {
+    const w = document.createElement("div"); w.className = "stack";
+    const row = document.createElement("div"); row.className = "row2";
+    row.appendChild(circleStatic({ tone: "primary", size: "md", text: state.supports[state.sIdx] }));
+    row.appendChild(circleInput({
+      tone: "flip", size: "md",
+      value: state.currentOpposite,
+      onInput: v => { state.currentOpposite = v; render(); },
+      autofocus: true,
+    }));
+    w.appendChild(row);
+
+    // "Add another opposite" button right under the circles
+    const addWrap = document.createElement("div");
+    addWrap.style.display = "flex"; addWrap.style.justifyContent = "center";
+    const addBtn = document.createElement("button");
+    addBtn.type = "button"; addBtn.className = "btn"; addBtn.style.color="#000";
+    addBtn.textContent = "Add another opposite";
+    addBtn.disabled = !state.currentOpposite.trim();
+    addBtn.onclick = () => {
+      if(!state.currentOpposite.trim()) return;
+      saveHistory();
+      state.opposites[state.sIdx].push(state.currentOpposite.trim());
+      state.currentOpposite = "";
+      render();
+      const ta=document.querySelector('.circle.flip textarea');
+      if(ta) ta.focus();
+    };
+    addWrap.appendChild(addBtn);
+    w.appendChild(addWrap);
+
+    const hint = document.createElement("p");
+    hint.className = "hint";
+    hint.textContent = `Supporting belief ${state.sIdx + 1} of 4 · ${state.opposites[state.sIdx].length} opposite${state.opposites[state.sIdx].length===1?"":"s"} saved`;
+    w.appendChild(hint);
+    stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "oppositePick") {
+    const w = document.createElement("div"); w.className = "stack";
+    const row = document.createElement("div"); row.className = "row2";
+    state.opposites[state.sIdx].forEach((text, i) => {
+      const c = circleStatic({ tone: "flip", size: "md", text });
+      c.classList.add("selectable");
+      if (state.chosenOpposite[state.sIdx] === i) c.classList.add("selected");
+      c.addEventListener("click", () => {
+        state.chosenOpposite[state.sIdx] = (state.chosenOpposite[state.sIdx] === i ? -1 : i);
+        render();
+      });
+      row.appendChild(c);
+    });
+    w.appendChild(row);
+    stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "newCore") {
+    const w = document.createElement("div"); w.className = "stack";
+    const grid = document.createElement("div");
+    grid.style.display="grid";
+    grid.style.gridTemplateColumns="240px 240px 240px";
+    grid.style.gridTemplateRows="240px 240px 240px";
+    grid.style.columnGap="36px";
+    grid.style.rowGap="36px";
+    grid.style.justifyContent="center";
+    grid.style.alignItems="center";
+    grid.style.justifyItems="center";
+    const pos=[[0,1],[1,2],[2,1],[1,0]];
+    for(let i=0;i<4;i++){
+      const opp=state.opposites[i][state.chosenOpposite[i]]||"";
+      const c=circleStatic({tone:"flip",size:"md",text:opp});
+      c.style.gridColumn=(pos[i][1]+1);
+      c.style.gridRow=(pos[i][0]+1);
+      grid.appendChild(c);
+    }
+    const center=circleInput({
+      tone:"flip",filled:true,value:state.reframed,
+      onInput: v => state.reframed = v,
+      autofocus:true}); center.style.width="220px"; center.style.aspectRatio="1"; center.style.padding="22px"; center.style.gridColumn="2"; center.style.gridRow="2"; grid.appendChild(center); w.appendChild(grid); stageEl.appendChild(w);
+  }
+
+  else if (state.phase === "final") {
+    const row = document.createElement("div"); row.className = "before-after";
+    row.appendChild(circleStatic({ tone: "primary", size:"md", text: state.core, filled: true }));
+    const a = document.createElement("div"); a.className = "arrow"; a.textContent = "→";
+    row.appendChild(a);
+    row.appendChild(circleStatic({ tone: "flip", size:"md", text: state.reframed, filled: true }));
+    stageEl.appendChild(row);
+  }
+
+  updateActions();
+}
+
+/* ================= footer actions (contextual) ================= */
+function saveHistory() {
+  history.push(JSON.parse(JSON.stringify({
+    phase: state.phase, supports: state.supports, currentSupport: state.currentSupport,
+    sIdx: state.sIdx, opposites: state.opposites, chosenOpposite: state.chosenOpposite,
+    currentOpposite: state.currentOpposite, reframed: state.reframed, core: state.core,
+  })));
+}
+function goBack() {
+  const prev = history.pop();
+  if (!prev) return;
+  Object.assign(state, prev);
+  render();
+}
+
+function updateActions() {
+  const actions = $("#actions");
+  actions.innerHTML = "";
+  $("#backBtn").disabled = history.length === 0;
+
+  const addBtn = (label, primary, disabled, onClick) => {
+    const b = document.createElement("button");
+    b.className = "btn" + (primary ? " primary" : "");
+    b.textContent = label;
+    b.disabled = !!disabled;
+    b.onclick = onClick;
+    actions.appendChild(b);
+    return b;
+  };
+
+  if (state.phase === "core") {
+    addBtn("Continue", true, !state.core.trim(), () => {
+      saveHistory();
+      state.phase = "support"; state.currentSupport = "";
+      render();
+    });
+  }
+
+  else if (state.phase === "support") {
+    const canSave = !!state.currentSupport.trim();
+    addBtn("Continue", true, !canSave, () => {
+      saveHistory();
+      state.supports.push(state.currentSupport.trim());
+      state.currentSupport = "";
+      if (state.supports.length >= 4) {
+        state.phase = "supportsReview";
+      }
+      render();
+    });
+  }
+
+  else if (state.phase === "supportsReview") {
+    addBtn("Continue", true, false, () => {
+      saveHistory();
+      state.phase = "opposite"; state.sIdx = 0; state.currentOpposite = "";
+      render();
+    });
+  }
+
+  else if (state.phase === "opposite") {
+    const has = !!state.currentOpposite.trim();
+    const savedCount = state.opposites[state.sIdx].length;
+    const isLastSupport = state.sIdx === 3;
+
+    const totalAfter = savedCount + (has ? 1 : 0);
+    let label;
+    if (totalAfter >= 2) label = "See what you got — choose one";
+    else label = isLastSupport ? "Continue" : "Next supporting belief";
+
+    const canMove = totalAfter >= 1;
+    addBtn(label, true, !canMove, () => {
+      saveHistory();
+      if (has) {
+        state.opposites[state.sIdx].push(state.currentOpposite.trim());
+        state.currentOpposite = "";
+      }
+      if (state.opposites[state.sIdx].length >= 2) {
+        state.phase = "oppositePick";
+      } else {
+        state.chosenOpposite[state.sIdx] = 0;
+        advanceFromSupport();
+      }
+      render();
+    });
+  }
+
+  else if (state.phase === "oppositePick") {
+    const chosen = state.chosenOpposite[state.sIdx] >= 0;
+    const isLast = state.sIdx === 3;
+    addBtn(isLast ? "Continue" : "Next supporting belief", true, !chosen, () => {
+      saveHistory();
+      advanceFromSupport();
+      render();
+    });
+  }
+
+  else if (state.phase === "newCore") {
+    addBtn("Continue", true, !state.reframed.trim(), () => {
+      saveHistory();
+      state.phase = "final";
+      render();
+    });
+  }
+
+  else if (state.phase === "final") {
+    addBtn("Start over", true, false, () => {
+      Object.assign(state, {
+        phase: "core", core: "", supports: [], currentSupport: "",
+        sIdx: 0, opposites: [[], [], [], []], chosenOpposite: [-1,-1,-1,-1],
+        currentOpposite: "", reframed: "",
+      });
+      history.length = 0;
+      render();
+    });
+  }
+}
+
+function advanceFromSupport() {
+  if (state.sIdx >= 3) {
+    state.phase = "newCore";
+  } else {
+    state.sIdx += 1;
+    state.currentOpposite = "";
+    state.phase = "opposite";
+  }
+}
+
+$("#backBtn").onclick = goBack;
+
+render();
+</script>
+</body>
+</html>
