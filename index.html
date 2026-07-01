@@ -17,10 +17,24 @@
     --primary: #F07F6C;
     --flip: #238CE7;
     --shadow: 0 1px 2px rgba(40,30,20,.05), 0 12px 40px rgba(40,30,20,.06);
+    --page-pad: clamp(1rem, 4vw, 2.5rem);
+    --section-gap: clamp(1.5rem, 4vw, 3.5rem);
+    --stack-gap: clamp(1rem, 3vw, 1.75rem);
+    --circle: clamp(11rem, 34vw, 18.75rem);
+    --circle-md: clamp(8.75rem, 24vw, 13.75rem);
+    --circle-pad: clamp(1.15rem, 3vw, 2rem);
+    --circle-pad-md: clamp(.9rem, 2.25vw, 1.375rem);
+    --circle-font: clamp(1rem, 1.35vw, 1.125rem);
+    --circle-font-md: clamp(.88rem, 1.15vw, .94rem);
+    --compass-size: clamp(6.4rem, 21vw, 13.75rem);
+    --compass-gap: clamp(.9rem, 3.5vw, 2.25rem);
+    --button-pad-y: clamp(.7rem, 1.4vw, .9rem);
+    --button-pad-x: clamp(1rem, 3vw, 1.4rem);
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
+    min-width: 0;
     background: var(--bg);
     color: var(--ink);
     font-family: "Inter", system-ui, sans-serif;
@@ -32,25 +46,74 @@
   button { font: inherit; cursor: pointer; }
   textarea, input { font: inherit; color: inherit; }
 
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 24px 56px; min-height: 100vh; display: flex; flex-direction: column; }
-  header .eyebrow { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .wrap {
+    width: min(100%, 70rem);
+    margin: 0 auto;
+    padding: var(--page-pad);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
+  header .eyebrow {
+    font-family: ui-monospace, monospace;
+    font-size: clamp(.65rem, 1vw, .7rem);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
 
-  .intro { max-width: 720px; margin-top: 40px; }
-  .intro p { color: var(--muted); font-size: 18px; margin: 0; line-height: 1.5; }
+  .intro {
+    width: min(100%, 45rem);
+    margin-top: var(--section-gap);
+  }
+  .intro p {
+    color: var(--muted);
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    margin: 0;
+    line-height: 1.5;
+  }
 
-  .stage { margin-top: 40px; flex: 1; display: flex; flex-direction: column; align-items: center; }
-  .stack { display: flex; flex-direction: column; align-items: center; gap: 28px; width: 100%; }
-  .row2 { display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: center; }
+  .stage {
+    margin-top: var(--section-gap);
+    flex: 1;
+    display: grid;
+    place-items: start center;
+    width: 100%;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--stack-gap);
+    width: 100%;
+  }
+  .row2 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(1rem, 4vw, 2rem);
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
 
   /* CIRCLES — outline style, white inside, text vertically centered */
   .circle {
-    width: clamp(150px, 30vw, 300px); aspect-ratio: 1; border-radius: 50%;
+    inline-size: var(--circle);
+    aspect-ratio: 1;
+    border-radius: 50%;
     background: #ffffff;
-    display: flex; align-items: center; justify-content: center;
-    padding: 32px; box-shadow: var(--shadow);
-    border: 3px solid var(--border);
+    display: grid;
+    place-items: center;
+    padding: var(--circle-pad);
+    box-shadow: var(--shadow);
+    border: clamp(.12rem, .35vw, .19rem) solid var(--border);
+    flex: 0 0 auto;
   }
-  .circle.md { width: clamp(120px,22vw,220px); padding: clamp(12px,2vw,22px); }
+  .circle.md {
+    inline-size: var(--circle-md);
+    padding: var(--circle-pad-md);
+  }
   .circle.primary { border-color: var(--primary); }
   .circle.flip { border-color: var(--flip); }
   .circle.primary.filled { background: var(--primary); border-color: var(--primary); }
@@ -58,34 +121,82 @@
   .circle.filled textarea, .circle.filled p { color: #fff; }
   .circle.filled textarea::placeholder { color: rgba(255,255,255,.7); }
   .circle textarea, .circle p {
-    width: 100%; background: transparent; border: 0; outline: 0; resize: none;
+    width: 100%;
+    max-height: 100%;
+    background: transparent; border: 0; outline: 0; resize: none;
     text-align: center; color: var(--ink); line-height: 1.35; margin: 0;
     display: block;
     font-family: inherit;
+    overflow-wrap: anywhere;
   }
-  .circle textarea { font-size: 18px; overflow: hidden; }
-  .circle.md textarea, .circle.md p { font-size: 15px; }
+  .circle textarea {
+    font-size: var(--circle-font);
+    overflow: hidden;
+    align-self: center;
+  }
+  .circle.md textarea, .circle.md p { font-size: var(--circle-font-md); }
   .circle textarea::placeholder { color: rgba(43,36,28,.35); }
   .circle.selectable { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
   .circle.selectable:hover { transform: translateY(-2px); }
   .circle.selectable.selected { background: var(--flip); }
   .circle.selectable.selected p { color: #fff; }
 
-  .hint { color: var(--muted); font-size: 14px; margin: 0; text-align: center; }
-  .encourage { font-family: "Fraunces", Georgia, serif; font-size: 20px; color: var(--ink); margin: 0; text-align: center; }
-
-  .grid2x2 {
-    display: grid; grid-template-columns: repeat(2, 1fr);
-    gap: 24px 40px; align-items: center; justify-items: center;
-    position: relative;
-    max-width: 720px; width: 100%;
+  .hint {
+    color: var(--muted);
+    font-size: clamp(.85rem, 1.6vw, .9rem);
+    margin: 0;
+    text-align: center;
+  }
+  .encourage {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(1.1rem, 2vw, 1.25rem);
+    color: var(--ink);
+    margin: 0;
+    text-align: center;
   }
 
+  .grid2x2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 4vw, 2.5rem);
+    align-items: center;
+    justify-items: center;
+    width: min(100%, 45rem);
+  }
+
+  .compass {
+    display: grid;
+    grid-template-columns: repeat(3, var(--compass-size));
+    grid-template-rows: repeat(3, var(--compass-size));
+    gap: var(--compass-gap);
+    place-content: center;
+    place-items: center;
+    width: min(100%, calc(var(--compass-size) * 3 + var(--compass-gap) * 2));
+    max-width: 100%;
+  }
+  .compass .circle {
+    inline-size: var(--compass-size);
+    padding: clamp(.8rem, 2.2vw, 1.375rem);
+  }
+  .compass .north { grid-area: 1 / 2; }
+  .compass .east { grid-area: 2 / 3; }
+  .compass .south { grid-area: 3 / 2; }
+  .compass .west { grid-area: 2 / 1; }
+  .compass .center { grid-area: 2 / 2; }
+  .compass .center.circle { transition: width .18s ease, height .18s ease; }
+
   /* pick chips */
-  .pick { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 10px; }
+  .pick {
+    width: min(100%, 40rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(.6rem, 1.5vw, .75rem);
+  }
   .pick .chip {
-    border: 1px solid var(--border); background: #fff; border-radius: 16px;
-    padding: 14px 18px; font-size: 15px; text-align: left; color: var(--ink);
+    border: 1px solid var(--border); background: #fff; border-radius: 1rem;
+    padding: clamp(.8rem, 2vw, .9rem) clamp(1rem, 2.4vw, 1.125rem);
+    font-size: clamp(.9rem, 1.4vw, .94rem);
+    text-align: left; color: var(--ink);
     transition: all .15s ease; display: flex; align-items: center; gap: 12px;
   }
   .pick .chip .dot {
@@ -95,12 +206,18 @@
   .pick .chip.selected .dot { background: var(--flip); border-color: var(--flip); }
 
   footer {
-    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border);
+    margin-top: var(--section-gap);
+    padding-top: clamp(1rem, 3vw, 1.5rem);
+    border-top: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   }
   footer .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
   .btn {
-    border-radius: 999px; padding: 10px 22px; font-size: 14px; font-weight: 500;
+    border-radius: 999px;
+    padding: var(--button-pad-y) var(--button-pad-x);
+    min-height: 2.75rem;
+    font-size: clamp(.88rem, 1.3vw, .95rem);
+    font-weight: 500;
     border: 1px solid var(--border); background: #fff; color: var(--ink);
     transition: opacity .15s, background .15s;
   }
@@ -109,23 +226,45 @@
   .btn.primary:hover { opacity: .9; background: var(--ink); }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
 
-  .before-after { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; }
-  .before-after .arrow { font-size: 28px; color: var(--muted); }
+  .before-after {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(1rem, 5vw, 2.5rem);
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .before-after .arrow {
+    font-size: clamp(1.5rem, 4vw, 1.75rem);
+    color: var(--muted);
+  }
 
-@media (max-width:900px){
-.wrap{padding:24px 16px 40px;}
-.row2{gap:20px;}
-.grid2x2{gap:20px;}
-.circle textarea{font-size:clamp(14px,2vw,18px);}
-}
-@media (max-width:600px){
-.wrap{padding:16px 12px 28px;}
-.row2{flex-direction:column;gap:16px;}
-.before-after{flex-direction:column;}
-.grid2x2{max-width:100%;row-gap:18px!important;column-gap:18px!important;}
-.btn{padding:12px 20px;font-size:16px;}
-}
-
+  @media (max-width: 520px) {
+    :root {
+      --circle: min(82vw, 18rem);
+      --circle-md: min(43vw, 10rem);
+      --compass-size: min(26vw, 6.75rem);
+      --compass-gap: clamp(.55rem, 2.5vw, .8rem);
+      --circle-font-md: clamp(.72rem, 3vw, .82rem);
+    }
+    .wrap { padding-block: 1rem 1.25rem; }
+    .stage { place-items: center; }
+    .row2 { gap: .9rem; }
+    footer {
+      align-items: stretch;
+    }
+    footer .actions,
+    footer .btn {
+      width: 100%;
+    }
+    .actions { order: 1; }
+    #backBtn { order: 2; }
+    .before-after .arrow {
+      width: 100%;
+      text-align: center;
+      transform: rotate(90deg);
+    }
+  }
 </style>
 </head>
 <body>
@@ -195,14 +334,86 @@ function autoGrow(t){
   t.style.height = "auto";
   t.style.height = t.scrollHeight + "px";
 }
-function circleInput({tone, value, onInput, size, autofocus, filled}) {
+
+/* ---- Center-circle auto-fit (newCore phase only) ----
+   Grows the circle's diameter (width === height, always) just enough to
+   contain the textarea's rendered content, and shrinks it back toward its
+   natural CSS size once there's a comfortable margin of slack. A hysteresis
+   buffer (one line of text) keeps the size from oscillating on every
+   keystroke. Font size is never touched — only width/height are adjusted,
+   and only on the one circle that opts in via `grow`. */
+function getBaseDiameter(circle) {
+  if (circle._baseDiameter == null) {
+    const w = circle.style.width, h = circle.style.height;
+    circle.style.width = ""; circle.style.height = "";
+    circle._baseDiameter = circle.getBoundingClientRect().width;
+    circle.style.width = w; circle.style.height = h;
+  }
+  return circle._baseDiameter;
+}
+function applyDiameter(circle, diameter, base) {
+  circle._diameter = diameter;
+  if (diameter > base + 0.5) {
+    circle.style.width = diameter + "px";
+    circle.style.height = diameter + "px";
+  } else {
+    circle.style.width = "";
+    circle.style.height = "";
+  }
+}
+function fitCircleToText(circle, textarea) {
+  const base = getBaseDiameter(circle);
+  const current = circle._diameter == null ? base : circle._diameter;
+
+  autoGrow(textarea);
+  const cs = getComputedStyle(circle);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
+  const hysteresis = lineHeight; // require a full line of slack before shrinking
+
+  const required = Math.ceil(textarea.scrollHeight + padY);
+
+  if (required > current) {
+    // Doesn't fit — grow just enough to contain it.
+    applyDiameter(circle, required, base);
+    // Growing widens the textarea too, which can let the same text re-wrap
+    // into fewer lines. Re-measure once so we don't overshoot the fit.
+    autoGrow(textarea);
+    const tighter = Math.ceil(textarea.scrollHeight + padY);
+    if (tighter < required && tighter >= base) {
+      applyDiameter(circle, Math.max(base, tighter), base);
+      autoGrow(textarea);
+    }
+  } else if (required <= current - hysteresis) {
+    // Comfortably smaller than current size — try to shrink, but verify it
+    // still fits once the (narrower) textarea has re-wrapped, so we never
+    // shrink past what the content actually needs.
+    let candidate = Math.max(base, required);
+    applyDiameter(circle, candidate, base);
+    autoGrow(textarea);
+    const after = Math.ceil(textarea.scrollHeight + padY);
+    if (after > candidate) {
+      candidate = Math.max(base, after);
+      applyDiameter(circle, candidate, base);
+      autoGrow(textarea);
+    }
+  }
+  // else: required sits within the stable zone (current - hysteresis, current]
+  // — leave the diameter exactly as it is to avoid oscillation.
+}
+function circleInput({tone, value, onInput, size, autofocus, filled, grow}) {
   const c = document.createElement("div");
   c.className = "circle " + tone + (size === "md" ? " md" : "") + (filled ? " filled" : "");
   const t = document.createElement("textarea");
   t.value = value; t.placeholder = "type"; t.rows = 1;
-  t.addEventListener("input", (e) => { onInput(e.target.value); autoGrow(t); updateActions(); });
+  t.addEventListener("input", (e) => {
+    onInput(e.target.value);
+    autoGrow(t);
+    if (grow) fitCircleToText(c, t);
+    updateActions();
+  });
   c.appendChild(t);
-  setTimeout(() => { autoGrow(t); if (autofocus) t.focus(); }, 0);
+  setTimeout(() => { autoGrow(t); if (grow) fitCircleToText(c, t); if (autofocus) t.focus(); }, 0);
   return c;
 }
 function circleStatic({tone, text, size, filled}) {
@@ -275,9 +486,9 @@ function render() {
 
     // "Add another opposite" button right under the circles
     const addWrap = document.createElement("div");
-    addWrap.style.display = "flex"; addWrap.style.justifyContent = "center";
+    addWrap.className = "actions";
     const addBtn = document.createElement("button");
-    addBtn.type = "button"; addBtn.className = "btn"; addBtn.style.color="#000";
+    addBtn.type = "button"; addBtn.className = "btn";
     addBtn.textContent = "Add another opposite";
     addBtn.disabled = !state.currentOpposite.trim();
     addBtn.onclick = () => {
@@ -319,26 +530,22 @@ function render() {
   else if (state.phase === "newCore") {
     const w = document.createElement("div"); w.className = "stack";
     const grid = document.createElement("div");
-    grid.style.display="grid";
-    grid.style.gridTemplateColumns="240px 240px 240px";
-    grid.style.gridTemplateRows="240px 240px 240px";
-    grid.style.columnGap="36px";
-    grid.style.rowGap="36px";
-    grid.style.justifyContent="center";
-    grid.style.alignItems="center";
-    grid.style.justifyItems="center";
-    const pos=[[0,1],[1,2],[2,1],[1,0]];
+    grid.className = "compass";
+    const pos=["north","east","south","west"];
     for(let i=0;i<4;i++){
       const opp=state.opposites[i][state.chosenOpposite[i]]||"";
       const c=circleStatic({tone:"flip",size:"md",text:opp});
-      c.style.gridColumn=(pos[i][1]+1);
-      c.style.gridRow=(pos[i][0]+1);
+      c.classList.add(pos[i]);
       grid.appendChild(c);
     }
     const center=circleInput({
       tone:"flip",filled:true,value:state.reframed,
       onInput: v => state.reframed = v,
-      autofocus:true}); center.style.width="220px"; center.style.aspectRatio="1"; center.style.padding="22px"; center.style.gridColumn="2"; center.style.gridRow="2"; grid.appendChild(center); w.appendChild(grid); stageEl.appendChild(w);
+      autofocus:true, grow:true});
+    center.classList.add("center");
+    grid.appendChild(center);
+    w.appendChild(grid);
+    stageEl.appendChild(w);
   }
 
   else if (state.phase === "final") {
