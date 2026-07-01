@@ -44,13 +44,13 @@
 
   /* CIRCLES — outline style, white inside, text vertically centered */
   .circle {
-    width: min(300px, 78vw); aspect-ratio: 1; border-radius: 50%;
+    width: clamp(150px, 30vw, 300px); aspect-ratio: 1; border-radius: 50%;
     background: #ffffff;
     display: flex; align-items: center; justify-content: center;
     padding: 32px; box-shadow: var(--shadow);
     border: 3px solid var(--border);
   }
-  .circle.md { width: min(220px, 60vw); padding: 22px; }
+  .circle.md { width: clamp(120px,22vw,220px); padding: clamp(12px,2vw,22px); }
   .circle.primary { border-color: var(--primary); }
   .circle.flip { border-color: var(--flip); }
   .circle.primary.filled { background: var(--primary); border-color: var(--primary); }
@@ -111,6 +111,21 @@
 
   .before-after { display: flex; flex-wrap: wrap; gap: 40px; align-items: center; justify-content: center; }
   .before-after .arrow { font-size: 28px; color: var(--muted); }
+
+@media (max-width:900px){
+.wrap{padding:24px 16px 40px;}
+.row2{gap:20px;}
+.grid2x2{gap:20px;}
+.circle textarea{font-size:clamp(14px,2vw,18px);}
+}
+@media (max-width:600px){
+.wrap{padding:16px 12px 28px;}
+.row2{flex-direction:column;gap:16px;}
+.before-after{flex-direction:column;}
+.grid2x2{max-width:100%;row-gap:18px!important;column-gap:18px!important;}
+.btn{padding:12px 20px;font-size:16px;}
+}
+
 </style>
 </head>
 <body>
