@@ -128,7 +128,6 @@
   .circle.filled textarea::placeholder { color: rgba(255,255,255,.7); }
   .circle textarea, .circle p {
     width: 100%;
-    max-height: 100%;
     background: transparent; border: 0; outline: 0; resize: none;
     text-align: center; color: var(--ink); line-height: 1.35; margin: 0;
     display: block;
@@ -200,7 +199,7 @@
   .compass .south { grid-area: 3 / 2; }
   .compass .west { grid-area: 2 / 1; }
   .compass .center { grid-area: 2 / 2; }
-  .compass .center.circle { transition: width .18s ease, height .18s ease; }
+  .compass .center.circle { transition: inline-size .22s ease, block-size .22s ease; }
 
   /* pick chips */
   .pick {
@@ -375,70 +374,45 @@ function autoGrow(t){
 }
 
 /* ---- Center-circle auto-fit (newCore phase only) ----
-   Grows the circle's diameter (width === height, always) just enough to
-   contain the textarea's rendered content, and shrinks it back toward its
-   natural CSS size once there's a comfortable margin of slack. A hysteresis
-   buffer (one line of text) keeps the size from oscillating on every
-   keystroke. Font size is never touched — only width/height are adjusted,
-   and only on the one circle that opts in via `grow`. */
+   The center circle grows only when the textarea's content no longer fits
+   inside the current content box. It does not shrink on normal typing, because
+   shrinking changes the textarea width, rewraps the text, and can create a
+   shrink/grow feedback loop. Clearing the text resets the circle to its CSS
+   base size. */
 function getBaseDiameter(circle) {
   if (circle._baseDiameter == null) {
-    const w = circle.style.width, h = circle.style.height;
-    circle.style.width = ""; circle.style.height = "";
+    const inlineSize = circle.style.inlineSize, blockSize = circle.style.blockSize;
+    circle.style.inlineSize = ""; circle.style.blockSize = "";
     circle._baseDiameter = circle.getBoundingClientRect().width;
-    circle.style.width = w; circle.style.height = h;
+    circle.style.inlineSize = inlineSize; circle.style.blockSize = blockSize;
   }
   return circle._baseDiameter;
 }
-function applyDiameter(circle, diameter, base) {
+function applyDiameter(circle, diameter) {
   circle._diameter = diameter;
-  if (diameter > base + 0.5) {
-    circle.style.width = diameter + "px";
-    circle.style.height = diameter + "px";
-  } else {
-    circle.style.width = "";
-    circle.style.height = "";
-  }
+  circle.style.inlineSize = diameter ? diameter + "px" : "";
+  circle.style.blockSize = diameter ? diameter + "px" : "";
 }
 function fitCircleToText(circle, textarea) {
   const base = getBaseDiameter(circle);
-  const current = circle._diameter == null ? base : circle._diameter;
-
   autoGrow(textarea);
   const cs = getComputedStyle(circle);
   const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
-  const hysteresis = lineHeight; // require a full line of slack before shrinking
+  const current = circle._diameter || base;
+  const contentBoxHeight = current - padY;
+  const needsReset = !textarea.value.trim();
 
-  const required = Math.ceil(textarea.scrollHeight + padY);
-
-  if (required > current) {
-    // Doesn't fit — grow just enough to contain it.
-    applyDiameter(circle, required, base);
-    // Growing widens the textarea too, which can let the same text re-wrap
-    // into fewer lines. Re-measure once so we don't overshoot the fit.
+  if (needsReset) {
+    applyDiameter(circle, 0);
     autoGrow(textarea);
-    const tighter = Math.ceil(textarea.scrollHeight + padY);
-    if (tighter < required && tighter >= base) {
-      applyDiameter(circle, Math.max(base, tighter), base);
-      autoGrow(textarea);
-    }
-  } else if (required <= current - hysteresis) {
-    // Comfortably smaller than current size — try to shrink, but verify it
-    // still fits once the (narrower) textarea has re-wrapped, so we never
-    // shrink past what the content actually needs.
-    let candidate = Math.max(base, required);
-    applyDiameter(circle, candidate, base);
-    autoGrow(textarea);
-    const after = Math.ceil(textarea.scrollHeight + padY);
-    if (after > candidate) {
-      candidate = Math.max(base, after);
-      applyDiameter(circle, candidate, base);
-      autoGrow(textarea);
-    }
+    return;
   }
-  // else: required sits within the stable zone (current - hysteresis, current]
-  // — leave the diameter exactly as it is to avoid oscillation.
+
+  if (textarea.scrollHeight <= contentBoxHeight + 1) return;
+
+  const next = Math.ceil(textarea.scrollHeight + padY);
+  applyDiameter(circle, Math.max(base, next));
+  autoGrow(textarea);
 }
 function circleInput({tone, value, onInput, size, autofocus, filled, grow}) {
   const c = document.createElement("div");
