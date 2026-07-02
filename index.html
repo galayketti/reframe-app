@@ -129,7 +129,7 @@
   .circle textarea, .circle p {
     width: 100%;
     background: transparent; border: 0; outline: 0; resize: none;
-    text-align: center; color: var(--ink); line-height: 1.35; margin: 0;
+    text-align: center; color: var(--ink); line-height: 1.35; margin: 0; padding: 0;
     display: block;
     font-family: inherit;
     overflow-wrap: anywhere;
@@ -200,6 +200,7 @@
   .compass .west { grid-area: 2 / 1; }
   .compass .center { grid-area: 2 / 2; }
   .compass .center.circle { transition: inline-size .22s ease, block-size .22s ease; }
+  .compass .center.circle textarea { transition: height .22s ease; }
 
   /* pick chips */
   .pick {
@@ -378,7 +379,23 @@ function autoGrow(t){
    inside the current content box. It does not shrink on normal typing, because
    shrinking changes the textarea width, rewraps the text, and can create a
    shrink/grow feedback loop. Clearing the text resets the circle to its CSS
-   base size. */
+   base size.
+
+   Root cause of the old grow/shrink/grow flicker: the circle's inline-size
+   and block-size are CSS-transitioned (for a smooth animated grow). Reading
+   textarea.scrollHeight while that transition is still in flight measures
+   the textarea against whatever *intermediate* width the box happens to be
+   at that instant, not its settled width — so the same text could measure
+   as needing more or less height from one keystroke to the next, even
+   though nothing about the content actually changed. That instability is
+   also what left the text hugging the top: its height kept getting locked
+   to a stale, mid-transition measurement instead of the box's real size.
+
+   The fix is to always measure against the circle's settled *target*
+   content width (never the live, possibly-animating rendered width), by
+   temporarily pinning the textarea to that exact width before reading
+   scrollHeight. This makes the fit decision deterministic regardless of
+   where the CSS animation currently is. */
 function getBaseDiameter(circle) {
   if (circle._baseDiameter == null) {
     const inlineSize = circle.style.inlineSize, blockSize = circle.style.blockSize;
@@ -393,13 +410,21 @@ function applyDiameter(circle, diameter) {
   circle.style.inlineSize = diameter ? diameter + "px" : "";
   circle.style.blockSize = diameter ? diameter + "px" : "";
 }
+// Measures the height the textarea's content needs at a specific width,
+// independent of whatever width its ancestor is currently rendering at
+// (which may still be mid CSS-transition from a previous grow).
+function measureHeightAtWidth(textarea, widthPx) {
+  const prevWidth = textarea.style.width;
+  const prevHeight = textarea.style.height;
+  textarea.style.width = widthPx + "px";
+  textarea.style.height = "auto";
+  const height = textarea.scrollHeight;
+  textarea.style.width = prevWidth;
+  textarea.style.height = prevHeight;
+  return height;
+}
 function fitCircleToText(circle, textarea) {
   const base = getBaseDiameter(circle);
-  autoGrow(textarea);
-  const cs = getComputedStyle(circle);
-  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-  const current = circle._diameter || base;
-  const contentBoxHeight = current - padY;
   const needsReset = !textarea.value.trim();
 
   if (needsReset) {
@@ -408,11 +433,28 @@ function fitCircleToText(circle, textarea) {
     return;
   }
 
-  if (textarea.scrollHeight <= contentBoxHeight + 1) return;
+  const cs = getComputedStyle(circle);
+  // Both padding and border eat into the content box; the diameter (border-box)
+  // must have both subtracted to know how much room the text actually has.
+  const chromeY =
+    parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
+    parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
 
-  const next = Math.ceil(textarea.scrollHeight + padY);
-  applyDiameter(circle, Math.max(base, next));
-  autoGrow(textarea);
+  const current = circle._diameter || base;
+  const contentWidth = current - chromeY;
+  const contentBoxHeight = current - chromeY;
+
+  const needed = measureHeightAtWidth(textarea, contentWidth);
+
+  if (needed <= contentBoxHeight + 1) {
+    // Fits already — just set the textarea to its actual required height.
+    textarea.style.height = needed + "px";
+    return;
+  }
+
+  const nextDiameter = Math.max(base, Math.ceil(needed + chromeY));
+  applyDiameter(circle, nextDiameter);
+  textarea.style.height = needed + "px";
 }
 function circleInput({tone, value, onInput, size, autofocus, filled, grow}) {
   const c = document.createElement("div");
